@@ -25,8 +25,8 @@ class TestHome(TestBase):
       self.home = BasePage(self.driver)
 
     def test1(self):
-      self.home.playUntilWin('Beginner')
-      self.home.playUntilWin('Intermediate')
+      # self.home.playUntilWin('Beginner')
+      self.home.playUntilWin('Expert')
 
       
 

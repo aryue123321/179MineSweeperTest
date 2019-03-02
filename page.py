@@ -17,11 +17,12 @@ class BasePage:
     self.LEVEL_DROPDOWN = (By.ID, "level")
     self.TIMER = (By.ID, "#timer")
     self.reset()
-    print(self.width, self.height)
+    
 
   def reset(self):
     self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
     self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
+    print(self.width, self.height)
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
     self.known = [0]*len(self.boxes)
     self.flags = [0]*len(self.boxes)
@@ -44,8 +45,8 @@ class BasePage:
         self.startNewGame()
 
   def randomClick(self):
-    unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
-    unkwonBoxes[random.randint(0, len(unkwonBoxes)-1)].click()
+    # unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
+    self.boxes[random.randint(0, len(self.boxes)-1)].click()
     try:
       self.clearAlert()
       return True
@@ -84,7 +85,7 @@ class BasePage:
           num = int(box.get_attribute('data-number'))
           for i in range(-1, 2):
             for j in range(-1, 2):
-              index = (x+i) + (y+j)*self.height
+              index = (x+i) + (y+j)*self.width
               if x+i >= 0 and x+i < self.width and y+j >= 0 and y+j < self.height:
                 boxClass = self.boxes[index].get_attribute('class')
                 if boxClass == 'cell unknown':
