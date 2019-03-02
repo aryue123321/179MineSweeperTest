@@ -1,5 +1,9 @@
 # 179MineSweeperTest
 
+## install python 3.7 ??
+
+at least 3 i guess
+
 ## insatll selenium
 
 `pip install selenium`
