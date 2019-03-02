@@ -12,7 +12,7 @@ class BasePage:
   
   def __init__(self, driver, level):
     self.driver = driver
-    self.driver.get("http://127.0.0.1:5500/minesweeper/index.html")
+    self.driver.get("http://michaelbutler.github.io/minesweeper/")
     self.NEWGAME = (By.CSS_SELECTOR, "#minesweeper > div.game_actions > button.new-game")
     self.LEVEL_DROPDOWN = (By.ID, "level")
     self.TIMER = (By.ID, "#timer")
