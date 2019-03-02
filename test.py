@@ -22,7 +22,7 @@ class TestHome(TestBase):
     """
     def setUp(self):
         super().setUp()
-        self.home = BasePage(self.driver, 'Beginner')
+        self.home = BasePage(self.driver, 'Intermediate')
 
     def test1(self):
       self.home.playUntilWin()

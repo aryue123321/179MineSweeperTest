@@ -19,6 +19,9 @@ class BasePage:
     self.SelectGameLevel(level)
     self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
     self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
+    self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
+    self.known = [0]*len(self.boxes)
+    self.flags = [0]*len(self.boxes)
     print(self.width, self.height)
 
 
@@ -38,9 +41,7 @@ class BasePage:
         self.startNewGame()
 
   def randomClick(self):
-    boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
-    # boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
-    unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', boxes))
+    unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
     unkwonBoxes[random.randint(0, len(unkwonBoxes)-1)].click()
     try:
       self.clearAlert()
@@ -50,16 +51,16 @@ class BasePage:
       return False
 
   def isGameOver(self):
-    boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
-    return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in boxes)
+    return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in self.boxes)
     
     
   def startNewGame(self):
     newGameButton = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.NEWGAME))
     newGameButton.click()
+    self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
 
-  def simpleMarkBomb(self):
-    boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
+  # def simpleMarkBomb(self):
+  #   boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
 
   def markSingleFlags(self, box):
     actionChains = ActionChains(self.driver)
@@ -69,8 +70,7 @@ class BasePage:
     while True:
       isDetect = False
       isClear = False
-      boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
-      for box in boxes:
+      for box in self.boxes:
         if isDetect or isClear:
           break
         if box.get_attribute('class') == 'cell number':
@@ -83,9 +83,9 @@ class BasePage:
             for j in range(-1, 2):
               index = (x+i) + (y+j)*self.height
               if x+i >= 0 and x+i < self.width and y+j >= 0 and y+j < self.height:
-                boxClass = boxes[index].get_attribute('class')
+                boxClass = self.boxes[index].get_attribute('class')
                 if boxClass == 'cell unknown':
-                  unknown.append(boxes[index])
+                  unknown.append(self.boxes[index])
                 if boxClass == 'cell ui-icon ui-icon-flag flagged':
                   known += 1
           if len(unknown) + known == num:
@@ -105,10 +105,10 @@ class BasePage:
         return False
 
   def clearAlert(self):
-    WebDriverWait(self.driver, 0.2).until(EC.alert_is_present())
+    WebDriverWait(self.driver, 0.1).until(EC.alert_is_present())
     alert = self.driver.switch_to.alert;
     alert.accept()
-    WebDriverWait(self.driver, 0.2).until(EC.alert_is_present())
+    WebDriverWait(self.driver, 0.1).until(EC.alert_is_present())
     alert = self.driver.switch_to.alert;
     alert.dismiss()
 
