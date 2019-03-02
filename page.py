@@ -10,20 +10,21 @@ import time
 
 class BasePage:
   
-  def __init__(self, driver, level):
+  def __init__(self, driver):
     self.driver = driver
     self.driver.get("http://michaelbutler.github.io/minesweeper/")
     self.NEWGAME = (By.CSS_SELECTOR, "#minesweeper > div.game_actions > button.new-game")
     self.LEVEL_DROPDOWN = (By.ID, "level")
     self.TIMER = (By.ID, "#timer")
-    self.SelectGameLevel(level)
+    self.reset()
+    print(self.width, self.height)
+
+  def reset(self):
     self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
     self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
     self.known = [0]*len(self.boxes)
     self.flags = [0]*len(self.boxes)
-    print(self.width, self.height)
-
 
   def SelectGameLevel(self, level):
     levelDropdown = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.LEVEL_DROPDOWN))
@@ -35,7 +36,9 @@ class BasePage:
           break
 
 
-  def playUntilWin(self):
+  def playUntilWin(self, level):
+    self.SelectGameLevel(level)
+    self.reset()
     while not self.randomClick() and not self.simpleMineDetecion():
       if self.isGameOver():
         self.startNewGame()
@@ -89,20 +92,33 @@ class BasePage:
                 if boxClass == 'cell ui-icon ui-icon-flag flagged':
                   known += 1
           if len(unknown) + known == num:
-            # isClear = True
             for box in unknown:
               self.markSingleFlags(box)
           elif known == num:
             isClear = True
-            for box in unknown:
-              try:
-                box.click()
-                self.clearAlert()
-                return True
-              except TimeoutException:
-                continue
+            try:
+              self.leftAndRightClick(box)
+              self.clearAlert()
+              return True
+            except TimeoutException:
+              continue
+            # for box in unknown:
+            #   try:
+            #     box.click()
+            #     self.clearAlert()
+            #     return True
+            #   except TimeoutException:
+            #     continue
       if not isDetect and not isClear:
         return False
+
+  def leftAndRightClick(self, box):
+    actionChains = ActionChains(self.driver)
+    actionChains.move_to_element(box)
+    actionChains.click()
+    actionChains.context_click()
+    actionChains.perform()
+
 
   def clearAlert(self):
     WebDriverWait(self.driver, 0.1).until(EC.alert_is_present())

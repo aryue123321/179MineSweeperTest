@@ -21,14 +21,13 @@ class TestHome(TestBase):
     TBD
     """
     def setUp(self):
-        super().setUp()
-        self.home = BasePage(self.driver, 'Intermediate')
+      super().setUp()
+      self.home = BasePage(self.driver)
 
     def test1(self):
-      self.home.playUntilWin()
+      self.home.playUntilWin('Beginner')
+      self.home.playUntilWin('Intermediate')
 
-    def test1(self):
-      self.home.playUntilWin()
       
 
 
