@@ -18,14 +18,32 @@ class BasePage:
     self.TIMER = (By.ID, "#timer")
     self.reset()
     
-
+  def updateBoxState(self, index):
+    # x = int(box.get_attribute('data-x'))
+    # y = int(box.get_attribute('data-y'))
+    # index = (x) + (y)*self.width
+    className = self.boxes[index].get_attribute('class')
+    if index in self.unknownBoxes and className != 'cell unknown':
+      if className == 'cell open':
+        self.emptyBoxes.add(index)
+      elif className == 'cell number':
+        self.numberBoxes.add(index)
+      elif className == 'cell ui-icon ui-icon-flag flagged':
+        self.flagBoxes.add(index)
+      self.unknownBoxes.remove(index)
+      
+      
   def reset(self):
     self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
     self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
     print(self.width, self.height)
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
-    self.known = [0]*len(self.boxes)
-    self.flags = [0]*len(self.boxes)
+    self.emptyBoxes = set()
+    self.flagBoxes = set()
+    self.numberBoxes = set()
+    self.clearedNumberBoxes = set()
+    self.unknownBoxes = set(range(self.width*self.height))
+    self.isGameOver = False
 
   def SelectGameLevel(self, level):
     levelDropdown = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.LEVEL_DROPDOWN))
@@ -41,24 +59,29 @@ class BasePage:
     self.SelectGameLevel(level)
     self.reset()
     while not self.randomClick() and not self.simpleMineDetecion():
-      if self.isGameOver():
+      if self.isGameOver:
         self.startNewGame()
+        self.reset()
 
   def randomClick(self):
     # unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
-    self.boxes[random.randint(0, len(self.boxes)-1)].click()
+    unknowIndex = list(self.unknownBoxes)[random.randint(0, len(self.unknownBoxes)-1)]
+    self.boxes[unknowIndex].click()
     try:
       self.clearAlert()
       return True
     except TimeoutException:
-      print('randomClickOK')
+      self.updateBoxState(unknowIndex)
+      if self.boxes[unknowIndex].get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' :
+        self.isGameOver = True
       return False
 
-  def isGameOver(self):
-    return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in self.boxes)
+  # def isGameOver(self):
+  #   return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in self.boxes)
     
     
   def startNewGame(self):
+    print("Start New Game")
     newGameButton = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.NEWGAME))
     newGameButton.click()
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
@@ -72,20 +95,20 @@ class BasePage:
 
   def simpleMineDetecion(self):
     while True:
-      isDetect = False
       isClear = False
-      for box in self.boxes:
-        if isDetect or isClear:
-          break
-        if box.get_attribute('class') == 'cell number':
-          x = int(box.get_attribute('data-x'))
-          y = int(box.get_attribute('data-y'))
+      for box in enumerate(self.boxes):
+        if box[0] not in self.unknownBoxes and box[0] not in self.numberBoxes:
+          continue
+        self.updateBoxState(box[0])
+        if box[0] in self.numberBoxes:
+          x = box[0] % self.width
+          y = box[0] // self.width
           unknown = []
           known = 0
-          num = int(box.get_attribute('data-number'))
+          num = int(box[1].get_attribute('data-number'))
           for i in range(-1, 2):
             for j in range(-1, 2):
-              index = (x+i) + (y+j)*self.width
+              index = x+i + (y+j)*self.width
               if x+i >= 0 and x+i < self.width and y+j >= 0 and y+j < self.height:
                 boxClass = self.boxes[index].get_attribute('class')
                 if boxClass == 'cell unknown':
@@ -93,24 +116,19 @@ class BasePage:
                 if boxClass == 'cell ui-icon ui-icon-flag flagged':
                   known += 1
           if len(unknown) + known == num:
-            for box in unknown:
-              self.markSingleFlags(box)
+            for b in unknown:
+              self.markSingleFlags(b)
           elif known == num:
             isClear = True
             try:
-              self.leftAndRightClick(box)
+              self.clearedNumberBoxes.add(box[0])
+              self.numberBoxes.remove(box[0])
+              self.leftAndRightClick(box[1])
               self.clearAlert()
               return True
             except TimeoutException:
               continue
-            # for box in unknown:
-            #   try:
-            #     box.click()
-            #     self.clearAlert()
-            #     return True
-            #   except TimeoutException:
-            #     continue
-      if not isDetect and not isClear:
+      if not isClear:
         return False
 
   def leftAndRightClick(self, box):
