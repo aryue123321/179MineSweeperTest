@@ -28,8 +28,8 @@ class TestHome(TestBase):
     def test1(self):
 
       # self.home.playUntilWin('Beginner')
-      # self.home.playUntilWin('Intermediate')
-      self.home.playUntilWin('Expert')
+      self.home.playUntilWin('Intermediate')
+      # self.home.playUntilWin('Expert')
 
 
       
