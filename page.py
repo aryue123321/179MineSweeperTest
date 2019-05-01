@@ -31,12 +31,17 @@ class BasePage:
       elif className == 'cell ui-icon ui-icon-flag flagged':
         self.flagBoxes.add(index)
       self.unknownBoxes.remove(index)
-      
-      
+  
+  def getMineSweeperWidth(self):
+    return int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
+  
+  def getMineSweeperHeight(self):
+    return int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1  
+
   def reset(self):
-    self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
-    self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
-    print(self.width, self.height)
+    self.width = self.getMineSweeperWidth();
+    self.height = self.getMineSweeperHeight();
+    # print(self.width, self.height)
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
     self.emptyBoxes = set()
     self.flagBoxes = set()
@@ -49,7 +54,7 @@ class BasePage:
     levelDropdown = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.LEVEL_DROPDOWN))
     levelDropdown.click()
     for option in levelDropdown.find_elements_by_tag_name('option'):
-      print(option.text)
+      # print(option.text)
       if option.text == level:
           option.click() # select() in earlier versions of webdriver
           break
@@ -60,6 +65,7 @@ class BasePage:
     self.reset()
     while not self.randomClick() and not self.simpleMineDetecion():
       if self.isGameOver:
+        print(len(s('blowns')))
         self.startNewGame()
         self.reset()
 
@@ -149,5 +155,9 @@ class BasePage:
 
   def printEle(self):
     boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
-    [print(box.get_attribute('data-x'), box.get_attribute('data-y')) for box in boxes] 
-      
+    [print(box.get_attribute('data-x'), box.get_attribute('data-y')) for box in boxes]
+
+  def ElementsByClass(self, className):
+    return self.driver.find_elements_by_class_name(className)
+
+  
