@@ -63,22 +63,40 @@ class TestHome(TestBase):
       self.assertEqual(self.home.getGameboardStats(), [30,16,99])
       self.home.SelectGameLevel('Intermediate')
       self.assertEqual(self.home.getGameboardStats(), [16,16,40])
-      
     
-    # def testPath_AC2(self):
-    #   self.home.SelectGameLevel('Intermediate')
-    #   self.assertEqual(self.home.getMineSweeperWidth(), 16)
-    #   self.assertEqual(self.home.getMineSweeperHeight(), 16)
+    def playGame(self, X, width, height, mines):
+      self.home.startNewGame()
+      while not self.home.randomClick() and not self.home.simpleMineDetecion():
+        if self.home.isGameOver:
+          self.assertEqual(len(self.home.driver.find_elements_by_class_name('blown')), mines)
+          boxes = self.home.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
+          for i in range(0, width):
+            for j in range(0, height):
+              dataNum = boxes[i+j*width].get_attribute('data-number')
+              if dataNum == '':
+                continue;
+              dataNum = int(dataNum)
+              surrondingMines = self.home.getNumOfMinesSurround(boxes, i, j, width, height)
+              self.assertEqual(surrondingMines, dataNum)
+              print('i: {}\tj: {}\tdatanum: {}\tmines: {}'.format(i, j, dataNum, surrondingMines))
+          X-=1;
+          if X == 0:
+            break
+          self.home.startNewGame()
+          self.home.reset()
 
-    # def testPath_AC3(self):
-    #   self.home.SelectGameLevel('Expert')
-    #   self.assertEqual(self.home.getMineSweeperWidth(), 30)
-    #   self.assertEqual(self.home.getMineSweeperHeight(), 16)
-
-    # def test1(self):
-    #   self.home.SelectGameLevel('Beginner')
-    #   self.home.playUntilWin()
-      # self.home.playUntilWin('Intermediate')
+    def testCase4(self):
+      X = 3
+      self.home.SelectGameLevel('Beginner')
+      width, height, mines = self.home.getGameboardStats()
+      self.playGame(X, width, height, mines)
+          
+  
+    def testCase5(self):
+      X = 3
+      self.home.SelectGameLevel('Intermediate')
+      width, height, mines = self.home.getGameboardStats()
+      self.playGame(X, width, height, mines)
 
 
 if __name__ == '__main__':

@@ -66,14 +66,15 @@ class BasePage:
           break
 
 
-  def playUntilWin(self):
+  def playUntilWinOrXtimes(self, X):
     # self.SelectGameLevel(level)
     self.reset()
-    while not self.randomClick() and not self.simpleMineDetecion():
+    while not self.randomClick() and not self.simpleMineDetecion() and X > 0:
       if self.isGameOver:
-        print(len(s('blowns')))
+        # print(len(s('blowns')))
         self.startNewGame()
         self.reset()
+        X-=1;
 
   def randomClick(self):
     # unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
@@ -178,5 +179,22 @@ class BasePage:
     minesInput = self.driver.find_element_by_css_selector('#numMines')
     minesInput.clear()
     minesInput.send_keys(mines)
+  
+  def getNumOfMinesSurround(self, boxes, x, y, width, height):
+    mines = 0
+    # dataNum = boxes[x+y*width].get_attribute('data-number')
+    # if dataNum == '':
+    #   return;
+    # dataNum = int(dataNum)
+    for i in range(-1, 2):
+      for j in range(-1, 2):
+        index = x+i + (y+j)*width
+        if x+i >= 0 and x+i < width and y+j >= 0 and y+j < height:
+          classes = boxes[index].get_attribute('class').split(' ')
+          # print('\t', x+i, y+j, classes)        
+          if 'blown' in classes:
+            mines += 1
+    # print(x, y, dataNum, mines)
+    return mines
 
   
