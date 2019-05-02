@@ -38,6 +38,12 @@ class BasePage:
   def getMineSweeperHeight(self):
     return int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1  
 
+  def getTotalMines(self):
+    return int(self.driver.find_element_by_css_selector('#mine_flag_display').get_attribute('value'))
+
+  def getGameboardStats(self):
+    return [self.getMineSweeperWidth(), self.getMineSweeperHeight(), self.getTotalMines()]
+
   def reset(self):
     self.width = self.getMineSweeperWidth();
     self.height = self.getMineSweeperHeight();
@@ -60,8 +66,8 @@ class BasePage:
           break
 
 
-  def playUntilWin(self, level):
-    self.SelectGameLevel(level)
+  def playUntilWin(self):
+    # self.SelectGameLevel(level)
     self.reset()
     while not self.randomClick() and not self.simpleMineDetecion():
       if self.isGameOver:
@@ -159,5 +165,18 @@ class BasePage:
 
   def ElementsByClass(self, className):
     return self.driver.find_elements_by_class_name(className)
+  
+  def SelectCustomerGame(self, x, y, mines):
+    self.SelectGameLevel('Custom')
+    xInput = self.driver.find_element_by_css_selector('#dim_x')
+    print(xInput)
+    xInput.clear()
+    xInput.send_keys(x)
+    yInput = self.driver.find_element_by_css_selector('#dim_y')
+    yInput.clear()
+    yInput.send_keys(y)
+    minesInput = self.driver.find_element_by_css_selector('#numMines')
+    minesInput.clear()
+    minesInput.send_keys(mines)
 
   
