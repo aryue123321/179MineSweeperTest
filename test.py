@@ -63,8 +63,6 @@ class TestHome(TestBase):
       self.assertEqual(self.home.getGameboardStats(), [30,16,99])
       self.home.SelectGameLevel('Intermediate')
       self.assertEqual(self.home.getGameboardStats(), [16,16,40])
-      self.home.SelectGameLevel('Beginner')
-      self.assertEqual(self.home.getGameboardStats(), [9,9,10])
       
     
     # def testPath_AC2(self):
