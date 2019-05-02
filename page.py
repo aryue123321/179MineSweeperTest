@@ -31,12 +31,23 @@ class BasePage:
       elif className == 'cell ui-icon ui-icon-flag flagged':
         self.flagBoxes.add(index)
       self.unknownBoxes.remove(index)
-      
-      
+  
+  def getMineSweeperWidth(self):
+    return int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
+  
+  def getMineSweeperHeight(self):
+    return int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1  
+
+  def getTotalMines(self):
+    return int(self.driver.find_element_by_css_selector('#mine_flag_display').get_attribute('value'))
+
+  def getGameboardStats(self):
+    return [self.getMineSweeperWidth(), self.getMineSweeperHeight(), self.getTotalMines()]
+
   def reset(self):
-    self.width = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-x'))+1
-    self.height = int(self.driver.find_element_by_css_selector('#minesweeper > div.board-wrap > ul:last-child > li:last-child').get_attribute('data-y'))+1
-    print(self.width, self.height)
+    self.width = self.getMineSweeperWidth();
+    self.height = self.getMineSweeperHeight();
+    # print(self.width, self.height)
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
     self.emptyBoxes = set()
     self.flagBoxes = set()
@@ -49,19 +60,21 @@ class BasePage:
     levelDropdown = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.LEVEL_DROPDOWN))
     levelDropdown.click()
     for option in levelDropdown.find_elements_by_tag_name('option'):
-      print(option.text)
+      # print(option.text)
       if option.text == level:
           option.click() # select() in earlier versions of webdriver
           break
 
 
-  def playUntilWin(self, level):
-    self.SelectGameLevel(level)
+  def playUntilWinOrXtimes(self, X):
+    # self.SelectGameLevel(level)
     self.reset()
-    while not self.randomClick() and not self.simpleMineDetecion():
+    while not self.randomClick() and not self.simpleMineDetecion() and X > 0:
       if self.isGameOver:
+        # print(len(s('blowns')))
         self.startNewGame()
         self.reset()
+        X-=1;
 
   def randomClick(self):
     # unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
@@ -149,5 +162,39 @@ class BasePage:
 
   def printEle(self):
     boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
-    [print(box.get_attribute('data-x'), box.get_attribute('data-y')) for box in boxes] 
-      
+    [print(box.get_attribute('data-x'), box.get_attribute('data-y')) for box in boxes]
+
+  def ElementsByClass(self, className):
+    return self.driver.find_elements_by_class_name(className)
+  
+  def SelectCustomerGame(self, x, y, mines):
+    self.SelectGameLevel('Custom')
+    xInput = self.driver.find_element_by_css_selector('#dim_x')
+    print(xInput)
+    xInput.clear()
+    xInput.send_keys(x)
+    yInput = self.driver.find_element_by_css_selector('#dim_y')
+    yInput.clear()
+    yInput.send_keys(y)
+    minesInput = self.driver.find_element_by_css_selector('#numMines')
+    minesInput.clear()
+    minesInput.send_keys(mines)
+  
+  def getNumOfMinesSurround(self, boxes, x, y, width, height):
+    mines = 0
+    # dataNum = boxes[x+y*width].get_attribute('data-number')
+    # if dataNum == '':
+    #   return;
+    # dataNum = int(dataNum)
+    for i in range(-1, 2):
+      for j in range(-1, 2):
+        index = x+i + (y+j)*width
+        if x+i >= 0 and x+i < width and y+j >= 0 and y+j < height:
+          classes = boxes[index].get_attribute('class').split(' ')
+          # print('\t', x+i, y+j, classes)        
+          if 'blown' in classes:
+            mines += 1
+    # print(x, y, dataNum, mines)
+    return mines
+
+  
