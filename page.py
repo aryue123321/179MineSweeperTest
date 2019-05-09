@@ -67,42 +67,41 @@ class BasePage:
 
   def twoDimToOneDim(self, x, y):
     return x + y*self.width
-
-  def playUntilWinOrXtimes(self, X):
-    # self.SelectGameLevel(level)
-    self.reset()
-    while not self.randomClick() and not self.simpleMineDetecion() and X > 0:
-      if self.isGameOver:
-        # print(len(s('blowns')))
-        self.startNewGame()
-        self.reset()
-        X-=1;
-
-  def randomClick(self):
-    # unkwonBoxes = list(filter(lambda x: x.get_attribute('class') == 'cell unknown', self.boxes))
-    unknowIndex = list(self.unknownBoxes)[random.randint(0, len(self.unknownBoxes)-1)]
-    self.boxes[unknowIndex].click()
-    try:
-      self.clearAlert()
-      return True
-    except TimeoutException:
-      self.updateBoxState(unknowIndex)
-      if self.boxes[unknowIndex].get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' :
-        self.isGameOver = True
-      return False
-
-  # def isGameOver(self):
-  #   return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in self.boxes)
-    
+  
   def clickBox(self, x, y):
     self.boxes[self.twoDimToOneDim(x,y)].click()
 
-  def openMulyipleBoxes(self, x, y):
+  def openMultipleBoxes(self, x, y):
     actionChains = ActionChains(self.driver)
     actionChains.move_to_element(self.boxes[self.twoDimToOneDim(x,y)])
     actionChains.click()
     actionChains.context_click()
     actionChains.perform()
+
+  def markFlag(self, x, y):
+    actionChains = ActionChains(self.driver)
+    actionChains.context_click(self.boxes[self.twoDimToOneDim(x,y)]).perform()
+  
+  def getUnknownCount(self):
+    return len([x for x in self.boxes if 'cell unknown' == x.get_attribute('class') or 'cell unknown test unblown' == x.get_attribute('class')])
+
+  def getClearedBoxCount(self):
+    return len([x for x in self.boxes if 'cell unknown unblown' == x.get_attribute('class') or 'cell unknown test unblown' == x.get_attribute('class') or 'cell open' == x.get_attribute('class')])
+
+  def getFlagBoxCount(self):
+    return len([x for x in self.boxes if 'cell ui-icon ui-icon-flag flagged ui-icon-close blown' == x.get_attribute('class') or 'cell ui-icon ui-icon-flag flagged' == x.get_attribute('class')])
+
+  def unknownBox(self):
+    return len([x for x in self.boxes if 'cell unknown' == x.get_attribute('class')])
+
+  def getUnknownMines(self):
+    return len([x for x in self.boxes if "cell unknown ui-icon ui-icon-close blown" == x.get_attribute('class') or 'cell unknown test ui-icon ui-icon-close blown' == x.get_attribute('class')])
+  
+  def getNumberCount(self):
+    return len([x for x in self.boxes if 'cell number unblown' == x.get_attribute('class') or 'cell number' == x.get_attribute('class')])
+  
+  def getExplodeCount(self):
+    return len([x for x in self.boxes if 'cell explode ui-icon ui-icon-close blown' == x.get_attribute('class')]) 
     
   def startNewGame(self):
     print("Start New Game")
@@ -118,51 +117,6 @@ class BasePage:
   def markSingleFlags(self, box):
     actionChains = ActionChains(self.driver)
     actionChains.context_click(box).perform()
-
-  def simpleMineDetecion(self):
-    while True:
-      isClear = False
-      for box in enumerate(self.boxes):
-        if box[0] not in self.unknownBoxes and box[0] not in self.numberBoxes:
-          continue
-        self.updateBoxState(box[0])
-        if box[0] in self.numberBoxes:
-          x = box[0] % self.width
-          y = box[0] // self.width
-          unknown = []
-          known = 0
-          num = int(box[1].get_attribute('data-number'))
-          for i in range(-1, 2):
-            for j in range(-1, 2):
-              index = x+i + (y+j)*self.width
-              if x+i >= 0 and x+i < self.width and y+j >= 0 and y+j < self.height:
-                boxClass = self.boxes[index].get_attribute('class')
-                if boxClass == 'cell unknown':
-                  unknown.append(self.boxes[index])
-                if boxClass == 'cell ui-icon ui-icon-flag flagged':
-                  known += 1
-          if len(unknown) + known == num:
-            for b in unknown:
-              self.markSingleFlags(b)
-          elif known == num:
-            isClear = True
-            try:
-              self.clearedNumberBoxes.add(box[0])
-              self.numberBoxes.remove(box[0])
-              self.leftAndRightClick(box[1])
-              self.clearAlert()
-              return True
-            except TimeoutException:
-              continue
-      if not isClear:
-        return False
-
-  def leftAndRightClick(self, box):
-    actionChains = ActionChains(self.driver)
-    actionChains.move_to_element(box)
-    actionChains.click()
-    actionChains.context_click()
-    actionChains.perform()
 
 
   def clearAlert(self):
@@ -192,22 +146,5 @@ class BasePage:
     minesInput = self.driver.find_element_by_css_selector('#numMines')
     minesInput.clear()
     minesInput.send_keys(mines)
-  
-  def getNumOfMinesSurround(self, boxes, x, y, width, height):
-    mines = 0
-    # dataNum = boxes[x+y*width].get_attribute('data-number')
-    # if dataNum == '':
-    #   return;
-    # dataNum = int(dataNum)
-    for i in range(-1, 2):
-      for j in range(-1, 2):
-        index = x+i + (y+j)*width
-        if x+i >= 0 and x+i < width and y+j >= 0 and y+j < height:
-          classes = boxes[index].get_attribute('class').split(' ')
-          # print('\t', x+i, y+j, classes)        
-          if 'blown' in classes:
-            mines += 1
-    # print(x, y, dataNum, mines)
-    return mines
 
   
