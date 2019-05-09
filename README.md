@@ -4,25 +4,13 @@
 
 https://github.com/michaelbutler/minesweeper
 
-## install python 3.7 ??
+##Dependency:
+Python 3
+Python Selenium
+Chrome Web Driver
+Live Server
 
-at least 3 i guess
-
-## insatll selenium
-
-`pip install selenium`
-
-## insatll chrome driver
-
-http://chromedriver.chromium.org/downloads
-
-### for windows:
-
-add chrome driver directory to PATH
-
-### for others:
-
-google yourself
+## live server is hosted on http://127.0.0.1:5500/souceCode/index.html
 
 ## run
 
