@@ -14,8 +14,8 @@ class TestBase(unittest.TestCase):
         # chrome_options.add_argument('window-size=1920x1080')
         self.driver = webdriver.Chrome(options=chrome_options)
 
-    def tearDown(self):
-        self.driver.close()
+    # def tearDown(self):
+    #     self.driver.close()
 
 class TestHome(TestBase):
     """
@@ -24,6 +24,31 @@ class TestHome(TestBase):
     def setUp(self):
       super().setUp()
       self.home = BasePage(self.driver)
+      self.mines = [[0, 2] ,
+                    [2, 0] ,
+                    [3, 4] ,
+                    [2, 4] ,
+                    [2, 2] ,
+                    [2, 3] ,
+                    [0, 4] ,
+                    [1, 1] ,
+                    [3, 3] ,
+                    [0, 1]]
+      self.notMines = [[1, 2] ,
+                      [4, 3] ,
+                      [4, 4] ,
+                      [2, 1] ,
+                      [1, 4] ,
+                      [4, 2] ,
+                      [1, 3] ,
+                      [1, 0] ,
+                      [0, 3] ,
+                      [3, 1] ,
+                      [3, 0] ,
+                      [4, 1] ,
+                      [4, 0] ,
+                      [3, 2] ,
+                      [0, 0] ,]
 
     def testCase1(self):
       self.home.SelectGameLevel('Beginner')
@@ -86,17 +111,20 @@ class TestHome(TestBase):
           self.home.reset()
 
     def testCase4(self):
-      X = 3
-      self.home.SelectGameLevel('Beginner')
-      width, height, mines = self.home.getGameboardStats()
-      self.playGame(X, width, height, mines)
+      self.home.SelectCustomerGame(5, 5, 10)
+      self.home.startNewGame()
+      for box in self.notMines:
+        self.home.openMulyipleBoxes(box[0], box[1])
+      # for box in self.notMines:
+      #   self.home.clickBox(box[0], box[1])
+
           
   
-    def testCase5(self):
-      X = 3
-      self.home.SelectGameLevel('Intermediate')
-      width, height, mines = self.home.getGameboardStats()
-      self.playGame(X, width, height, mines)
+    # def testCase5(self):
+    #   X = 3
+    #   self.home.SelectGameLevel('Intermediate')
+    #   width, height, mines = self.home.getGameboardStats()
+    #   self.playGame(X, width, height, mines)
 
 
 if __name__ == '__main__':

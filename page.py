@@ -12,7 +12,7 @@ class BasePage:
   
   def __init__(self, driver):
     self.driver = driver
-    self.driver.get("http://michaelbutler.github.io/minesweeper/")
+    self.driver.get("http://127.0.0.1:5500/souceCode/index.html")
     self.NEWGAME = (By.CSS_SELECTOR, "#minesweeper > div.game_actions > button.new-game")
     self.LEVEL_DROPDOWN = (By.ID, "level")
     self.TIMER = (By.ID, "#timer")
@@ -65,6 +65,8 @@ class BasePage:
           option.click() # select() in earlier versions of webdriver
           break
 
+  def twoDimToOneDim(self, x, y):
+    return x + y*self.width
 
   def playUntilWinOrXtimes(self, X):
     # self.SelectGameLevel(level)
@@ -92,12 +94,23 @@ class BasePage:
   # def isGameOver(self):
   #   return any(x.get_attribute('class') == 'cell explode ui-icon ui-icon-close blown' for x in self.boxes)
     
+  def clickBox(self, x, y):
+    self.boxes[self.twoDimToOneDim(x,y)].click()
+
+  def openMulyipleBoxes(self, x, y):
+    actionChains = ActionChains(self.driver)
+    actionChains.move_to_element(self.boxes[self.twoDimToOneDim(x,y)])
+    actionChains.click()
+    actionChains.context_click()
+    actionChains.perform()
     
   def startNewGame(self):
     print("Start New Game")
     newGameButton = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.NEWGAME))
     newGameButton.click()
     self.boxes = self.driver.find_elements_by_css_selector("#minesweeper > div.board-wrap > ul > li")
+    self.width = self.getMineSweeperWidth()
+    self.height = self.getMineSweeperHeight()
 
   # def simpleMarkBomb(self):
   #   boxes = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(self.BOXES))
